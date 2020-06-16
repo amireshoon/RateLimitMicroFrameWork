@@ -97,4 +97,7 @@ class Track {
         fclose($fp);
     }
  
+    public function test() {
+        echo 'Everything is ok';
+    }
 }
