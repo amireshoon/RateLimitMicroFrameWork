@@ -2,14 +2,15 @@
 
 namespace RateLimit;
 
-define('RATE_IN_RANGE', "-5 minutes");
+class Limiter {
 
-class Track {
     protected $rateData = [];
 
-    protected $path = '../tmp/rate_limit/rate.limit';
+    public string $path = __DIR__ . '/../tmp/rate_limit/rate.limit';
 
-    protected $accessPerMinutes = 1;
+    public int $requests = 2;
+
+    public int $inRange = 5;
 
     public function __construct() {
         if(!file_exists($this->path)) {
@@ -36,7 +37,7 @@ class Track {
             $user = $this->rateData[$i];
             if($user->ip == $this->_ip()) {
 
-                if($user->last_access < strtotime(RATE_IN_RANGE)) {
+                if($user->last_access < strtotime("-$this->inRange minutes")) {
                     // User unbanned
                     $this->rateData[$i]->access = [];
                     $this->rateData[$i]->access[] = time();
@@ -46,7 +47,7 @@ class Track {
                     $this->updateLocalRate();
                 }
 
-                if(sizeof($user->access) <= $this->accessPerMinutes - 1 && !$status) {
+                if(sizeof($user->access) <= $this->requests - 1 && !$status) {
                     $this->rateData[$i]->access[] = time();
                     $this->rateData[$i]->last_access = time();
                     $status = true;
@@ -59,7 +60,7 @@ class Track {
     }
 
     public function set_access_pre_minutes($access_count) {
-        $this->accessPerMinutes = $access_count;
+        $this->requests = $access_count;
     }
 
     public function create_access() {
@@ -96,8 +97,5 @@ class Track {
         fwrite($fp, json_encode($this->rateData));
         fclose($fp);
     }
- 
-    public function test() {
-        echo 'Everything is ok';
-    }
+
 }
